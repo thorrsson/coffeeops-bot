@@ -40,7 +40,7 @@ module.exports = (robot) ->
           resp_string_header = "Books Results Found\n==============\n"
           for result in books
             resp_string += result.titleNoFormatting + "\n" + result.unescapedUrl + "\n\n"
-            msg.send resp_string_header + resp_string
+          msg.send resp_string_header + resp_string
 
   robot.respond /(web)( me)? (.*)/i, (msg) ->
     query = msg.match[3]
@@ -63,7 +63,7 @@ module.exports = (robot) ->
           resp_string_header = "Web Results Found\n==============\n"
           for result in results
             resp_string += result.titleNoFormatting + "\n" + result.unescapedUrl + "\n\n"
-            msg.send resp_string_header + resp_string
+          msg.send resp_string_header + resp_string
 
 
 
