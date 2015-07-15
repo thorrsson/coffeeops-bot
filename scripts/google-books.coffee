@@ -1,6 +1,7 @@
 
 # Description:
-#   google books search script
+#   google books and web search script
+#   Uses the deprecated unauthenticated google search APIs.. rate limited searchs :(
 #
 # Dependencies:
 #
@@ -9,16 +10,15 @@
 #
 # Commands:
 #   hubot book me <keywords>
+#   hubot web me <keywords>
 #
 # Author:
 #   Tim Hunter <tim@thunter.ca>
 #
 
 module.exports = (robot) ->
-  googleApiKey = process.env.HUBOT_GOOGLE_TOKEN
   robot.respond /(book)( me)? (.*)/i, (msg) ->
     query = msg.match[3]
-
     # Using deprecated Google image search API
     q = v: '1.0', rsz: '8', q: query, safe: 'active'
     msg.http('https://ajax.googleapis.com/ajax/services/search/books')
@@ -36,15 +36,14 @@ module.exports = (robot) ->
         msg.robot.logger.info books
         if books?.length > 0
 
-          resp_string_header = "Books Found\n==============\n"
-          resp_string = ("#{book.titleNoFormatting} :> #{shortenURL(book.unescapedUrl, msg)} \n" for book in books)
-          msg.robot.logger.info resp_string
-        msg.send resp_string_header + resp_string
-
+          resp_string = ''
+          resp_string_header = "Books Results Found\n==============\n"
+          for result in books
+            resp_string += result.titleNoFormatting + "\n" + result.unescapedUrl + "\n\n"
+            msg.send resp_string_header + resp_string
 
   robot.respond /(web)( me)? (.*)/i, (msg) ->
     query = msg.match[3]
-
     # Using deprecated Google image search API
     q = v: '1.0', rsz: '8', q: query, safe: 'active'
     msg.http('https://ajax.googleapis.com/ajax/services/search/web')
@@ -59,31 +58,17 @@ module.exports = (robot) ->
         web_resp = JSON.parse(body)
         msg.robot.logger.info web_resp
         results = web_resp.responseData?.results
-        msg.robot.logger.info results
         if results?.length > 0
-
+          resp_string = ''
           resp_string_header = "Web Results Found\n==============\n"
-          resp_string = ("#{result.titleNoFormatting}  :>> \n      #{shortenURL(result.unescapedUrl, msg)} \n" for result in results)
-          msg.robot.logger.info resp_string_header + resp_string
-        msg.send resp_string_header + resp_string
+          for result in results
+            resp_string += result.titleNoFormatting + "\n" + result.unescapedUrl + "\n\n"
+            msg.send resp_string_header + resp_string
 
 
 
-shortenURL = (url, msg) ->
-  data = "{\"longUrl\": \"#{url}\"}"
-  googleApiKey = process.env.HUBOT_GOOGLE_TOKEN
-  msg.http("https://www.googleapis.com/urlshortener/v1/url?key=" + googleApiKey)
-    .header('Content-Type', 'application/json')
-    .post(data) (err, res, body) ->
-      if err
-        msg.send "Encountered an error :( #{err}"
-        return
-      if res.statusCode isnt 200
-        msg.send "Bad HTTP response :( #{res.statusCode}"
-        return
 
-      resp_hash = JSON.parse(body)
-      resp_hash.id
+
 
 
 
